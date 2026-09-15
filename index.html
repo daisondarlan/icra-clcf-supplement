@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  // ==========================================
+  // REPOSITORY-LOCAL SUPPLEMENTARY ARTIFACTS
+  // ==========================================
+  const LOCAL_ARTIFACTS = {
+    videoFile: "media/field_test.mp4",
+    datasetFile: "data/landing_dataset_release.csv",
+    datasetReadme: "data/README.md"
+  };
+
+  function anonymousRepoId(){
+    if (location.hostname !== "anonymous.4open.science") return null;
+    const m = location.pathname.match(/^\/w\/([^/]+)/);
+    return m ? m[1] : null;
+  }
+
+  function anonymousFileViewUrl(path){
+    const repoId = anonymousRepoId();
+    if (!repoId) return path;
+    return "/r/" + encodeURIComponent(repoId) + "/" +
+           path.split("/").map(encodeURIComponent).join("/");
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const video = document.getElementById("field-video");
+    if (video) video.src = LOCAL_ARTIFACTS.videoFile;
+
+    const dl = document.getElementById("dataset-download-btn");
+    if (dl) {
+      dl.href = anonymousRepoId() ? anonymousFileViewUrl(LOCAL_ARTIFACTS.datasetFile) : LOCAL_ARTIFACTS.datasetFile;
+      dl.target = "_self";
+      if (!anonymousRepoId()) dl.setAttribute("download", "landing_dataset_release.csv");
+    }
+
+    const readme = document.getElementById("dataset-readme-btn");
+    if (readme) {
+      readme.href = anonymousRepoId() ? anonymousFileViewUrl(LOCAL_ARTIFACTS.datasetReadme) : LOCAL_ARTIFACTS.datasetReadme;
+      readme.target = "_self";
+    }
+  });
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Layer Consistency Framework — Supplementary Material</title>
+<meta name="description" content="Supplementary material for a study on cross-layer consistency auditing for safety-critical robot perception pipelines, applied to a real depth-camera UAV landing-site classifier.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+============================================================ */
+:root{
+  --bg:#F6F8FB;
+  --bg-warm:#F8F7F3;
+  --surface:#FFFFFF;
+  --surface-sunken:#F0F3F8;
+  --ink:#101826;
+  --ink-soft:#48566B;
+  --ink-faint:#8996A8;
+  --line:#DFE6EE;
+  --line-strong:#C7D1DE;
+
+  --navy:#14324F;
+  --navy-dim:#E7EDF4;
+  --teal:#0D7C93;
+  --teal-dim:#DFF1F5;
+  --violet:#5D4E97;
+  --violet-dim:#EAE6F6;
+  --amber:#B4650F;
+  --amber-dim:#FBEADB;
+  --green:#1E7A55;
+  --green-dim:#E1F2E9;
+  --red:#B23A3A;
+  --red-dim:#F8E5E5;
+
+  --radius-lg:20px;
+  --radius-md:14px;
+  --radius-sm:9px;
+  --shadow-1:0 1px 2px rgba(16,24,38,0.05), 0 1px 1px rgba(16,24,38,0.03);
+  --shadow-2:0 8px 24px -8px rgba(20,50,79,0.16), 0 2px 6px rgba(20,50,79,0.06);
+  --shadow-3:0 20px 48px -16px rgba(20,50,79,0.22);
+  font-size:16px;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; scroll-padding-top:104px; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.55;
+}
+h1,h2,h3,h4{ font-family:'Newsreader', Georgia, serif; margin:0; color:var(--ink); font-weight:500; }
+.mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; }
+a{ color:inherit; }
+::selection{ background:var(--teal-dim); }
+:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+img,svg{ display:block; max-width:100%; }
+button{ font-family:inherit; }
+
+.wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+@media (max-width:720px){ .wrap{ padding:0 20px; } }
+
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.72rem;
+  letter-spacing:0.08em;
+  color:var(--ink-faint);
+  display:flex; align-items:center; gap:10px;
+}
+.eyebrow .num{ color:var(--teal); font-weight:600; }
+.eyebrow::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+/* ============================================================
+   NAV
+============================================================ */
+nav.sitenav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(246,248,251,0.86);
+  backdrop-filter:blur(10px) saturate(1.4);
+  border-bottom:1px solid var(--line);
+}
+.sitenav-inner{
+  max-width:1180px; margin:0 auto; padding:0 32px;
+  display:flex; align-items:center; gap:28px; height:56px;
+}
+.sitenav .mark{
+  font-family:'Newsreader',serif; font-weight:600; font-size:1.02rem; white-space:nowrap;
+}
+.sitenav .mark em{ font-style:normal; color:var(--teal); }
+.sitenav-links{ display:flex; gap:2px; margin-left:auto; }
+.sitenav-links a{
+  text-decoration:none; font-size:0.86rem; color:var(--ink-soft);
+  padding:7px 13px; border-radius:7px; position:relative; transition:color .15s;
+}
+.sitenav-links a:hover{ color:var(--ink); }
+.sitenav-links a.active{ color:var(--navy); }
+.sitenav-links a.active::after{
+  content:""; position:absolute; left:13px; right:13px; bottom:2px; height:2px;
+  background:var(--teal); border-radius:2px;
+}
+@media (max-width:860px){
+  .sitenav-inner{
+    height:auto; min-height:56px; padding:8px 18px;
+    gap:8px 14px; flex-wrap:wrap; align-items:center;
+  }
+  .sitenav .mark{ font-size:0.9rem; white-space:normal; line-height:1.25; }
+  .sitenav-links{
+    display:flex; width:100%; margin-left:0;
+    overflow-x:auto; overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; -ms-overflow-style:none;
+    gap:2px; padding-bottom:6px;
+  }
+  .sitenav-links::-webkit-scrollbar{ display:none; }
+  .sitenav-links a{
+    flex:0 0 auto; padding:7px 11px; font-size:0.8rem; white-space:nowrap;
+  }
+  .sitenav-links a.active::after{ left:11px; right:11px; bottom:0; }
+}
+
+/* ============================================================
+   HERO
+============================================================ */
+.hero{ position:relative; overflow:hidden; background:var(--bg-warm); border-bottom:1px solid var(--line); }
+.hero-trace{ position:absolute; inset:0; width:100%; height:100%; opacity:0.9; }
+.hero-inner{ position:relative; padding:76px 32px 56px; max-width:1180px; margin:0 auto; }
+.badge{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:'IBM Plex Mono',monospace; font-size:0.72rem; letter-spacing:0.06em;
+  color:var(--navy); background:var(--navy-dim); border:1px solid #CBD9EA;
+  padding:6px 12px; border-radius:20px; margin-bottom:22px;
+}
+.badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--teal); }
+h1.title{
+  font-size:clamp(1.9rem, 4vw, 2.9rem);
+  line-height:1.14; max-width:22ch; letter-spacing:-0.01em; margin-bottom:22px;
+}
+p.deck{
+  font-size:1.05rem; color:var(--ink-soft); max-width:62ch; margin-bottom:30px;
+}
+p.deck strong{ color:var(--ink); font-weight:600; }
+.metarow{
+  display:flex; flex-wrap:wrap; gap:0; border-top:1px solid var(--line-strong); max-width:920px;
+}
+.metarow .stat{
+  padding:16px 26px 0 0; margin-right:26px; border-right:1px solid var(--line); min-width:112px;
+}
+.metarow .stat:last-child{ border-right:none; }
+.metarow .stat .n{ font-family:'Newsreader',serif; font-size:1.5rem; color:var(--navy); font-weight:600; }
+.metarow .stat .l{ font-size:0.74rem; color:var(--ink-faint); margin-top:2px; }
+@media (max-width:720px){ .metarow .stat{ min-width:44%; margin-bottom:16px; } }
+
+/* ============================================================
+   SECTIONS — shared
+============================================================ */
+section.block{ padding:84px 0; border-bottom:1px solid var(--line); }
+section.block.tint-teal{ background:linear-gradient(180deg, var(--teal-dim) 0%, var(--bg) 220px); }
+section.block.tint-amber{ background:linear-gradient(180deg, var(--amber-dim) 0%, var(--bg) 220px); }
+section.block.tint-violet{ background:linear-gradient(180deg, var(--violet-dim) 0%, var(--bg) 220px); }
+section.block.tint-green{ background:linear-gradient(180deg, var(--green-dim) 0%, var(--bg) 220px); }
+.block-head{ margin-bottom:34px; }
+.block-head h2{ font-size:1.65rem; margin-top:10px; max-width:32ch; }
+.block-head p.sub{ color:var(--ink-soft); margin-top:10px; max-width:58ch; font-size:0.98rem; }
+
+/* ============================================================
+   RESULTS FIGURE
+============================================================ */
+.figure-shell{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-2); padding:6px; position:relative;
+}
+.figure-grid{
+  display:grid; grid-template-columns:1.15fr 1fr; gap:6px;
+}
+@media (max-width:900px){ .figure-grid{ grid-template-columns:1fr; } }
+.figure-panel{
+  background:var(--surface); border-radius:var(--radius-md); padding:22px 22px 14px;
+  border:1px solid transparent;
+}
+.figure-panel + .figure-panel{ border-top:1px solid var(--line); }
+@media (min-width:901px){
+  .figure-panel:nth-child(odd){ border-right:1px solid var(--line); }
+  .figure-panel + .figure-panel{ border-top:none; }
+  .figure-panel:nth-child(3), .figure-panel:nth-child(4){ border-top:1px solid var(--line); }
+}
+.figure-header{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; gap:10px;}
+.figure-header .ftitle{ font-size:0.92rem; font-weight:600; color:var(--ink); }
+.figure-header .ftag{ font-family:'IBM Plex Mono',monospace; font-size:0.66rem; color:var(--ink-faint); }
+.chart-container{ position:relative; height:220px; width:100%; }
+.chart-container canvas{ width:100% !important; height:100% !important; }
+
+.figcaption{
+  display:flex; gap:14px; padding:20px 6px 4px; color:var(--ink-soft); font-size:0.9rem; align-items:flex-start;
+}
+.figcaption b{ font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--ink); flex:none; padding-top:1px;}
+
+.highlights{
+  display:flex; gap:0; margin-top:28px; border-top:1px solid var(--line); padding-top:24px; flex-wrap:wrap;
+}
+.highlights .hl{ flex:1; min-width:150px; padding-right:22px; }
+.highlights .hl .v{ font-family:'Newsreader',serif; font-size:2rem; color:var(--teal); font-weight:600; line-height:1; }
+.highlights .hl .d{ font-size:0.82rem; color:var(--ink-soft); margin-top:8px; max-width:22ch; }
+
+/* ============================================================
+   VIDEO
+============================================================ */
+.video-shell{
+  background:var(--ink); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-3);
+  border:1px solid #0B1622; position:relative;
+}
+.video-tag{
+  position:absolute; top:16px; left:16px; z-index:2;
+  font-family:'IBM Plex Mono',monospace; font-size:0.68rem; letter-spacing:0.08em; color:#fff;
+  background:rgba(180,101,15,0.92); padding:5px 10px; border-radius:5px;
+}
+.video-ratio{ position:relative; width:100%; padding-top:56.25%; }
+.video-ratio iframe,.video-ratio video{ position:absolute; inset:0; width:100%; height:100%; border:0; object-fit:contain; background:#000; }
+p.video-note{ color:var(--ink-soft); font-size:0.95rem; margin-top:18px; max-width:64ch; }
+
+/* ============================================================
+   FRAMEWORK CHECKS
+============================================================ */
+.check-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+}
+@media (max-width:900px){ .check-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:600px){ .check-grid{ grid-template-columns:1fr; } }
+.check-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md);
+  padding:22px; box-shadow:var(--shadow-1); position:relative; overflow:hidden;
+}
+.check-card .cid{
+  font-family:'IBM Plex Mono',monospace; font-size:0.72rem; font-weight:600;
+  color:#fff; background:var(--navy); display:inline-block;
+  padding:3px 9px; border-radius:5px; margin-bottom:12px;
+}
+.check-card h4{ font-size:1.02rem; margin-bottom:8px; }
+.check-card p{ font-size:0.86rem; color:var(--ink-soft); margin:0; }
+.check-card .status{
+  margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:0.7rem;
+  letter-spacing:0.04em; padding:4px 9px; border-radius:5px; display:inline-block;
+}
+.status.pass{ background:var(--green-dim); color:var(--green); }
+.status.fail{ background:var(--red-dim); color:var(--red); }
+
+/* ============================================================
+   DATASET
+============================================================ */
+.dl-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
+.dl-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md);
+  padding:22px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow-1);
+}
+.dl-card .fname{ font-family:'IBM Plex Mono',monospace; font-size:0.84rem; color:var(--ink); }
+.dl-card .fmeta{ font-size:0.8rem; color:var(--ink-faint); }
+.meta-strip{
+  display:flex; flex-wrap:wrap; gap:0; margin-top:28px; border-top:1px solid var(--line); padding-top:20px;
+}
+.meta-strip .m{ padding-right:28px; margin-right:28px; border-right:1px solid var(--line); }
+.meta-strip .m:last-child{ border:none; }
+.meta-strip .m .v{ font-family:'IBM Plex Mono',monospace; font-size:0.95rem; color:var(--navy); }
+.meta-strip .m .l{ font-size:0.74rem; color:var(--ink-faint); margin-top:3px; }
+
+.file-list{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md);
+  padding:8px; box-shadow:var(--shadow-1); margin-top:20px;
+}
+.file-row{
+  display:flex; align-items:center; gap:14px; padding:14px 16px;
+  border-radius:var(--radius-sm);
+  cursor:default;
+  user-select:none;
+}
+.file-row + .file-row{ border-top:1px solid var(--line); }
+.file-icon{
+  width:38px; height:38px; flex:none; border-radius:8px;
+  background:var(--teal-dim); display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+.file-icon svg{ width:20px; height:20px; pointer-events:none; }
+.file-info{ flex:1; min-width:0; pointer-events:none; }
+.file-info .fn{ font-family:'IBM Plex Mono',monospace; font-size:0.84rem; color:var(--ink); }
+.file-info .fd{ font-size:0.76rem; color:var(--ink-faint); margin-top:2px; }
+.file-badge{
+  font-family:'IBM Plex Mono',monospace; font-size:0.66rem;
+  padding:3px 8px; border-radius:5px; background:var(--navy-dim); color:var(--navy);
+  white-space:nowrap; pointer-events:none;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+footer{ padding:44px 0 60px; text-align:center; }
+
+@media (max-width:720px){
+  section.block{ padding:56px 0; }
+  .block-head{ margin-bottom:24px; }
+  .block-head h2{ font-size:1.32rem; max-width:none; }
+  .block-head p.sub{ font-size:0.92rem; }
+
+  .hero-inner{ padding:48px 20px 40px; }
+  h1.title{ font-size:1.6rem; max-width:none; line-height:1.2; }
+  p.deck{ font-size:0.97rem; }
+  .metarow .stat{ min-width:44%; margin-right:0; padding:14px 14px 0 0; }
+  .metarow .stat .n{ font-size:1.3rem; }
+
+  .figure-shell{ padding:4px; border-radius:var(--radius-md); }
+  .figure-panel{ padding:16px 14px 10px; }
+  .chart-container{ height:270px; }
+  .figcaption{ flex-direction:column; gap:6px; padding:16px 2px 2px; font-size:0.86rem; }
+
+  .highlights{ gap:20px 0; padding-top:20px; }
+  .highlights .hl{ flex:1 1 44%; min-width:44%; padding-right:14px; }
+  .highlights .hl .v{ font-size:1.55rem; }
+  .highlights .hl .d{ font-size:0.78rem; }
+
+  .video-shell{ border-radius:var(--radius-md); }
+  .video-tag{ top:10px; left:10px; font-size:0.62rem; }
+  .video-ratio{ padding-top:calc(56.25% + 48px); }
+
+  .check-card{ padding:18px 16px; }
+
+  .dl-card{ padding:18px 16px; }
+  .dl-card .btn{ width:100%; justify-content:center; }
+  .meta-strip{ gap:0; padding-top:16px; }
+  .meta-strip .m{
+    padding-right:16px; margin-right:16px; margin-bottom:14px; border-right:none;
+  }
+  .file-row{ padding:12px 10px; gap:10px; }
+  .file-info .fn{ font-size:0.76rem; }
+  .file-badge{ display:none; }
+
+  footer{ padding:32px 0 48px; }
+}
+footer .fmark{ font-family:'IBM Plex Mono',monospace; font-size:0.74rem; letter-spacing:0.08em; color:var(--ink-faint); }
+
+.reveal{ opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s ease; }
+.reveal.in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce){ .reveal{ opacity:1; transform:none; transition:none; } html{scroll-behavior:auto;} }
+
+.btn{
+  font-family:'Inter',sans-serif; font-weight:600; font-size:0.86rem; cursor:pointer;
+  border-radius:8px; padding:9px 16px; border:1px solid transparent; transition:transform .1s, background .15s, border-color .15s;
+  display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+}
+.btn:active{ transform:scale(0.98); }
+.btn-teal{ background:var(--teal); color:#fff; }
+.btn-teal:hover{ background:#0B6478; }
+.btn-outline{ background:#fff; color:var(--ink); border-color:var(--line-strong); }
+.btn-outline:hover{ border-color:var(--ink-faint); }
+</style>
+</head>
+<body>
+
+<nav class="sitenav">
+  <div class="sitenav-inner">
+    <div class="mark">Cross-Layer <em>Consistency</em> Framework</div>
+    <div class="sitenav-links" id="sitenav-links">
+      <a href="#summary">Summary</a>
+      <a href="#results">Results</a>
+      <a href="#framework">Framework</a>
+      <a href="#field-test">Field Test</a>
+      <a href="#dataset">Dataset</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="summary">
+  <svg class="hero-trace" viewBox="0 0 1180 420" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="gfade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F8F7F3" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#F8F7F3" stop-opacity="1"/>
+      </linearGradient>
+    </defs>
+    <g stroke="#DCE4EE" stroke-width="1">
+      <line x1="0" y1="60" x2="1180" y2="60"/><line x1="0" y1="120" x2="1180" y2="120"/>
+      <line x1="0" y1="180" x2="1180" y2="180"/><line x1="0" y1="240" x2="1180" y2="240"/>
+      <line x1="0" y1="300" x2="1180" y2="300"/><line x1="0" y1="360" x2="1180" y2="360"/>
+    </g>
+    <path d="M0,230 C 90,220 140,150 210,150 S 320,235 390,235 S 470,110 560,108 S 660,240 700,240 C 730,240 735,120 760,110 S 860,220 940,222 S 1050,140 1180,145" fill="none" stroke="#0D7C93" stroke-width="2.5" opacity="0.55"/>
+    <path d="M0,255 C 100,250 160,270 230,268 S 340,205 410,208 S 500,270 590,272 S 680,150 720,148 C 745,147 750,255 780,262 S 880,240 950,238 S 1060,205 1180,210" fill="none" stroke="#5D4E97" stroke-width="2" opacity="0.4" stroke-dasharray="1 5" stroke-linecap="round"/>
+    <rect x="705" y="60" width="55" height="180" fill="#B4650F" opacity="0.10"/>
+    <line x1="705" y1="60" x2="705" y2="240" stroke="#B4650F" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 3"/>
+    <line x1="760" y1="60" x2="760" y2="240" stroke="#B4650F" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 3"/>
+    <rect x="0" y="0" width="1180" height="420" fill="url(#gfade)"/>
+  </svg>
+  <div class="hero-inner">
+    <div class="badge"><span class="dot"></span>Anonymous Supplementary Material</div>
+    <h1 class="title">The Cross-Layer Consistency Framework: Catching Compounding Silent Failures in Safety-Critical Robot Perception</h1>
+    <p class="deck">
+      Safety critical robot perception pipelines are normally validated one layer at a time. Each stage passes its own local test, but nothing checks whether the stages still agree with each other once one of them changes. This work introduces the <strong>Cross-Layer Consistency Framework (CLCF)</strong>, a set of six checks that test cross-layer agreement after a change. Applied end to end to a real depth-camera UAV landing-site classifier, the system fails five of the six checks. A unit-conversion bug in a tilt feature, whose fix is verified correct in isolation, silently invalidates the safety backstop's decision table. Rebuilding that table does not resolve the issue, because the backstop shares the classifier's own generalization ceiling.
+    </p>
+    <div class="metarow">
+      <div class="stat"><div class="n">6</div><div class="l">Consistency checks (C1–C6)</div></div>
+      <div class="stat"><div class="n">8</div><div class="l">Flight sessions</div></div>
+      <div class="stat"><div class="n">3,458</div><div class="l">Labeled rows</div></div>
+      <div class="stat"><div class="n">14</div><div class="l">Classifiers compared</div></div>
+      <div class="stat"><div class="n">5 / 6</div><div class="l">Checks failed</div></div>
+      <div class="stat"><div class="n">160 / 160</div><div class="l">Embedded decisions matched</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="block tint-violet reveal" id="results">
+  <div class="wrap">
+    <div class="block-head">
+      <div class="eyebrow"><span class="num">01</span>Key Results</div>
+      <h2>Five of six consistency checks fail on a real, physically-flown landing classifier</h2>
+      <p class="sub">Results are derived from eight real and controlled flight sessions, fourteen classifiers, and a leave-one-session-out evaluation protocol. All values represent recorded system states.</p>
+    </div>
+
+    <div class="figure-shell">
+      <div class="figure-grid">
+        <div class="figure-panel">
+          <div class="figure-header">
+            <span class="ftitle">Leave-one-session-out recall, mean vs worst case</span>
+            <span class="ftag mono">TABLE IV</span>
+          </div>
+          <div class="chart-container"><canvas id="chart-loso"></canvas></div>
+        </div>
+        <div class="figure-panel">
+          <div class="figure-header">
+            <span class="ftitle">Clutter-session recall by classifier</span>
+            <span class="ftag mono">TABLE IV</span>
+          </div>
+          <div class="chart-container"><canvas id="chart-clutter"></canvas></div>
+        </div>
+        <div class="figure-panel">
+          <div class="figure-header">
+            <span class="ftitle">Rows outside deployed table range, old vs rebuilt</span>
+            <span class="ftag mono">TABLE V</span>
+          </div>
+          <div class="chart-container"><canvas id="chart-range"></canvas></div>
+        </div>
+        <div class="figure-panel">
+          <div class="figure-header">
+            <span class="ftitle">Mean out-of-range rate, before and after rebuild</span>
+            <span class="ftag mono">TABLE V</span>
+          </div>
+          <div class="chart-container"><canvas id="chart-rebuild"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="figcaption">
+      <b>Figure 1.</b>
+      <span>Under leave-one-session-out evaluation, nine of fourteen classifiers score 0.0% recall on the held-out clutter session. Only XGBoost and HistGradientBoosting generalize to this hazard type. Separately, the deployed decision table rejects 100% of post-fix angle_deg rows across all three sessions, and rebuilding the table from other sessions raises the mean out-of-range rate from 35.2% to 83.0%, because the backstop inherits the classifier's generalization ceiling.</span>
+    </div>
+
+    <div class="highlights">
+      <div class="hl"><div class="v">5 / 6</div><div class="d">Checks failed by the real UAV landing classifier</div></div>
+      <div class="hl"><div class="v">100% → 0%</div><div class="d">Leakage-inflated accuracy collapses under LOSO worst-case recall</div></div>
+      <div class="hl"><div class="v">2 / 14</div><div class="d">Classifiers that generalize to the held-out hazard type</div></div>
+      <div class="hl"><div class="v">83.0%</div><div class="d">Mean out-of-range rate after rebuild, up from 35.2%</div></div>
+      <div class="hl"><div class="v">160 / 160</div><div class="d">Embedded decisions matched on an 8-bit microcontroller</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="block tint-teal reveal" id="framework">
+  <div class="wrap">
+    <div class="block-head">
+      <div class="eyebrow"><span class="num">02</span>The CLCF Framework</div>
+      <h2>Six checks for cross-layer consistency in safety-critical perception</h2>
+      <p class="sub">Each check targets one way two pipeline stages can silently drift apart. C1 and C2 are evaluation-time checks. C3 and C4 are data-time checks. C5 and C6 are maintenance-time checks, run whenever any upstream stage changes.</p>
+    </div>
+
+    <div class="check-grid">
+      <div class="check-card">
+        <span class="cid">C1</span>
+        <h4>Split Independence</h4>
+        <p>Training and test samples must come from different recording sessions. Adjacent frames from one recording are near duplicates and leak information across the split.</p>
+        <span class="status fail">FAILED</span>
+      </div>
+      <div class="check-card">
+        <span class="cid">C2</span>
+        <h4>Full Rotation</h4>
+        <p>Every session must serve as the held-out test set at least once. A single split gives no indication of how a model behaves on a genuinely new scenario.</p>
+        <span class="status fail">FAILED</span>
+      </div>
+      <div class="check-card">
+        <span class="cid">C3</span>
+        <h4>Physical Plausibility</h4>
+        <p>Labeled features must fall within physically plausible ranges derived from domain constraints, independent of the data. Violations above a set tolerance flag a data defect.</p>
+        <span class="status fail">FAILED</span>
+      </div>
+      <div class="check-card">
+        <span class="cid">C4</span>
+        <h4>Synthetic Ground Truth</h4>
+        <p>Each stage producing a numeric estimate must be verified against synthetic inputs with known ground truth, never only against another stage's downstream score.</p>
+        <span class="status fail">FAILED</span>
+      </div>
+      <div class="check-card">
+        <span class="cid">C5</span>
+        <h4>Dependency Staleness</h4>
+        <p>When a stage changes, every downstream artifact fit on its output must be rebuilt or re-validated before being trusted again. A verified fix can silently break a dependent model.</p>
+        <span class="status fail">FAILED</span>
+      </div>
+      <div class="check-card">
+        <span class="cid">C6</span>
+        <h4>Backstop Generalization</h4>
+        <p>The safety backstop must generalize at least as well as the model it protects, evaluated under the same held-out protocol. A backstop fit on the same data inherits the model's blind spots.</p>
+        <span class="status fail">FAILED</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block tint-amber reveal" id="field-test">
+  <div class="wrap">
+    <div class="block-head">
+      <div class="eyebrow"><span class="num">03</span>Field Test</div>
+      <h2>Real outdoor flight over rubble and clean ground</h2>
+      <p class="sub">A 105-second recording of real outdoor flight, sampled at 1 fps, shows the pipeline distinguishing a safe concrete patch from surrounding rubble. This flight predates the tilt-feature fix and the likelihood-table rebuild.</p>
+    </div>
+    <div class="video-shell">
+      <span class="video-tag">FIELD TEST</span>
+      <div class="video-ratio">
+        <video id="field-video" controls preload="metadata" playsinline
+               title="Real outdoor UAV flight recording of the landing-site classifier"></video>
+      </div>
+    </div>
+    <p class="video-note">The flight demonstrates the full pipeline running on a real aircraft, not only on logged rows or in simulation. The clean concrete patch is repeatedly called SAFE with obstacle_ratio between 0.09 and 0.17, while the surrounding rubble is called NOT SAFE. This recording provides qualitative context and is not part of the formal quantitative benchmark.</p>
+  </div>
+</section>
+
+<section class="block tint-green reveal" id="dataset">
+  <div class="wrap">
+    <div class="block-head">
+      <div class="eyebrow"><span class="num">04</span>Dataset</div>
+      <h2>UAV landing-site perception logs, eight sessions, 3,458 labeled rows</h2>
+      <p class="sub">The dataset spans two collection phases. Phase 1 comes from real outdoor flights on a small multirotor UAV. Phase 2 was collected afterward in a controlled setup built to isolate two hazard types. The released tabular dataset underlying the quantitative analyses is provided here.</p>
+    </div>
+
+    <div class="dl-grid">
+      <div class="dl-card">
+        <div class="fname">UAV landing-site perception dataset</div>
+        <div class="fmeta">Depth frames, extracted geometric features (tilt, flatness_std, obstacle_ratio), ground-truth labels (SAFE / NOT SAFE), and session metadata for all eight recording sessions. Includes both the pre-fix and post-fix tilt features and the likelihood tables used by the deployed classifier.</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a id="dataset-download-btn" class="btn btn-teal" href="data/landing_dataset_release.csv">Download Dataset (CSV)</a>
+          <a id="dataset-readme-btn" class="btn btn-outline" href="data/README.md">Dataset README</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="file-list">
+      <div class="file-row">
+        <div class="file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0D7C93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <div class="fn">landing_dataset_release.csv</div>
+          <div class="fd">3,458 labeled rows · 8 sessions · pre-fix and post-fix tilt features</div>
+        </div>
+        <span class="file-badge">CSV</span>
+      </div>
+      <div class="file-row">
+        <div class="file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0D7C93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="file-info">
+          <div class="fn">README.md</div>
+          <div class="fd">Dataset description, session metadata, feature definitions, and usage notes</div>
+        </div>
+        <span class="file-badge">MD</span>
+      </div>
+    </div>
+
+    <div class="meta-strip">
+      <div class="m"><div class="v">8</div><div class="l">Sessions</div></div>
+      <div class="m"><div class="v">3,458</div><div class="l">Labeled rows</div></div>
+      <div class="m"><div class="v">14</div><div class="l">Classifiers evaluated</div></div>
+      <div class="m"><div class="v">100 Hz</div><div class="l">Sampling rate</div></div>
+      <div class="m"><div class="v">2</div><div class="l">Collection phases</div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="fmark">Anonymous Supplementary Material — prepared for double-masked review</div>
+</footer>
+
+<script>
+/* ============================================================================
+   Supplementary site logic.
+   Defensive throughout: every chart checks its container exists, every
+   Chart instance is tracked and destroyed before any re-creation, and all
+   DOM work waits for DOMContentLoaded.
+============================================================================ */
+(function(){
+
+  var PALETTE = {
+    navy:  "#14324F",
+    teal:  "#0D7C93",
+    violet:"#5D4E97",
+    amber: "#B4650F",
+    green: "#1E7A55",
+    red:   "#B23A3A",
+    grey:  "#9BA8B8",
+    greyDark:"#6B7A8C"
+  };
+
+  var charts = {};
+  function safeChart(id, factory){
+    var el = document.getElementById(id);
+    if(!el){ return; }
+    if(charts[id]){ try{ charts[id].destroy(); }catch(e){} }
+    try{
+      charts[id] = factory(el);
+    }catch(err){
+      console.error("chart init failed for", id, err);
+    }
+  }
+
+  /* ---------------- Data from the paper (Tables IV, V) ---------------- */
+  var MODELS = ["LDA","Random Forest","XGBoost","HistGB","GNB"];
+  var LOSO_MEAN = [0.837, 0.814, 0.809, 0.777, 0.501];
+  var LOSO_WORST = [0.000, 0.023, 0.000, 0.000, 0.000];
+  var CLUTTER_RECALL = [0.000, 0.023, 0.998, 1.000, 0.000];
+
+  var SESSIONS = ["Landable","Tilt","Clutter"];
+  var OLD_RANGE = [38.7, 33.5, 33.3];     // mean across the three features
+  var REBUILT_RANGE = [89.8, 100.0, 59.3]; // mean across the three features
+
+  function modelColor(name){
+    if(name === "XGBoost" || name === "HistGB") return PALETTE.teal;
+    return PALETTE.grey;
+  }
+
+  function buildCharts(){
+    if(typeof Chart === "undefined"){ return; }
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = "#48566B";
+    Chart.defaults.font.size = 11;
+
+    // (a) LOSO mean vs worst-case recall
+    safeChart("chart-loso", function(el){
+      return new Chart(el, {
+        type: "bar",
+        data: {
+          labels: MODELS,
+          datasets: [
+            {
+              label: "mean recall",
+              data: LOSO_MEAN,
+              backgroundColor: PALETTE.navy,
+              borderRadius: 3,
+              maxBarThickness: 20
+            },
+            {
+              label: "worst-case recall",
+              data: LOSO_WORST,
+              backgroundColor: PALETTE.red,
+              borderRadius: 3,
+              maxBarThickness: 20
+            }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ position:"bottom", labels:{ boxWidth:10, boxHeight:10, padding:10, font:{size:10} } },
+            tooltip:{ callbacks:{ label:function(ctx){ return ctx.dataset.label + ": " + (ctx.parsed.y*100).toFixed(1) + "%"; } } }
+          },
+          scales:{
+            x:{ grid:{ display:false }, ticks:{ font:{ size:9.5 } } },
+            y:{ title:{ display:true, text:"recall" }, grid:{ color:"#EEF1F5" },
+                ticks:{ callback:function(v){ return (v*100).toFixed(0) + "%"; } }, max:1.0 }
+          }
+        }
+      });
+    });
+
+    // (b) Clutter-session recall
+    safeChart("chart-clutter", function(el){
+      return new Chart(el, {
+        type: "bar",
+        data: {
+          labels: MODELS,
+          datasets: [{
+            data: CLUTTER_RECALL,
+            backgroundColor: MODELS.map(modelColor),
+            borderRadius: 3,
+            maxBarThickness: 34
+          }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ display:false },
+            tooltip:{ callbacks:{ label:function(ctx){ return "clutter recall: " + (ctx.parsed.y*100).toFixed(1) + "%"; } } }
+          },
+          scales:{
+            x:{ grid:{ display:false }, ticks:{ font:{ size:9.5 } } },
+            y:{ title:{ display:true, text:"recall on held-out clutter session" },
+                grid:{ color:"#EEF1F5" },
+                ticks:{ callback:function(v){ return (v*100).toFixed(0) + "%"; } }, max:1.0 }
+          }
+        }
+      });
+    });
+
+    // (c) Rows outside deployed table range, old vs rebuilt
+    safeChart("chart-range", function(el){
+      return new Chart(el, {
+        type: "bar",
+        data: {
+          labels: SESSIONS,
+          datasets: [
+            {
+              label: "old table",
+              data: OLD_RANGE,
+              backgroundColor: PALETTE.grey,
+              borderRadius: 3,
+              maxBarThickness: 26
+            },
+            {
+              label: "rebuilt table",
+              data: REBUILT_RANGE,
+              backgroundColor: PALETTE.teal,
+              borderRadius: 3,
+              maxBarThickness: 26
+            }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ position:"bottom", labels:{ boxWidth:10, boxHeight:10, padding:10, font:{size:10} } },
+            tooltip:{ callbacks:{ label:function(ctx){ return ctx.dataset.label + ": " + ctx.parsed.y.toFixed(1) + "%"; } } }
+          },
+          scales:{
+            x:{ grid:{ display:false } },
+            y:{ title:{ display:true, text:"mean out-of-range rate [%]" },
+                grid:{ color:"#EEF1F5" }, max:100 }
+          }
+        }
+      });
+    });
+
+    // (d) Mean out-of-range rate, before and after rebuild
+    safeChart("chart-rebuild", function(el){
+      return new Chart(el, {
+        type: "bar",
+        data: {
+          labels: ["Old deployed table","Rebuilt from other sessions"],
+          datasets: [{
+            data: [35.2, 83.0],
+            backgroundColor: [PALETTE.grey, PALETTE.amber],
+            borderRadius: 4,
+            maxBarThickness: 60
+          }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{
+            legend:{ display:false },
+            tooltip:{ callbacks:{ label:function(ctx){ return ctx.parsed.y.toFixed(1) + "% out of range"; } } }
+          },
+          scales:{
+            x:{ grid:{ display:false }, ticks:{ font:{ size:10 } } },
+            y:{ title:{ display:true, text:"mean out-of-range rate [%]" },
+                grid:{ color:"#EEF1F5" }, max:100 }
+          }
+        }
+      });
+    });
+  }
+
+  /* ---------------- Nav scrollspy + reveal-on-scroll ---------------- */
+  function initScrollSpy(){
+    var links = Array.prototype.slice.call(document.querySelectorAll(".sitenav-links a"));
+    var sections = links.map(function(a){ return document.querySelector(a.getAttribute("href")); }).filter(Boolean);
+    if(!sections.length || !("IntersectionObserver" in window)) return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          var id = "#" + entry.target.id;
+          links.forEach(function(a){ a.classList.toggle("active", a.getAttribute("href") === id); });
+        }
+      });
+    }, { rootMargin: "-40% 0px -50% 0px" });
+    sections.forEach(function(s){ obs.observe(s); });
+  }
+
+  function initReveal(){
+    var els = document.querySelectorAll(".reveal");
+    if(!("IntersectionObserver" in window)){ els.forEach(function(e){ e.classList.add("in"); }); return; }
+    var obs = new IntersectionObserver(function(entries, o){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ entry.target.classList.add("in"); o.unobserve(entry.target); }
+      });
+    }, { threshold: 0.08 });
+    els.forEach(function(e){ obs.observe(e); });
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    buildCharts();
+    initScrollSpy();
+    initReveal();
+  });
+
+})();
+</script>
+</body>
+</html>

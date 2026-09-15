@@ -1,0 +1,8 @@
+Anonymous supplementary material for double-masked review.
+
+Contents:
+- index.html: supplementary webpage
+- data/: released landing-site feature dataset and dataset README
+- media/: anonymized field-test video
+
+No source code is included in this supplementary release.
