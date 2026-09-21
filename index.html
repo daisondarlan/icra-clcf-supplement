@@ -51,6 +51,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
 /* ============================================================
    DESIGN TOKENS
@@ -335,6 +336,29 @@ p.video-note{ color:var(--ink-soft); font-size:0.95rem; margin-top:18px; max-wid
   white-space:nowrap; pointer-events:none;
 }
 
+
+/* ============================================================
+   CODE VIEWER
+============================================================ */
+.code-shell{
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:var(--radius-lg);
+  overflow:hidden; box-shadow:var(--shadow-2);
+}
+.code-topbar{ display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--surface-sunken); flex-wrap:wrap; }
+.code-tabs{ display:flex; gap:4px; flex-wrap:wrap; }
+.code-tabs button{
+  border:none; background:transparent; padding:7px 12px; border-radius:7px; font-size:0.76rem; font-weight:600;
+  font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); cursor:pointer;
+}
+.code-tabs button.active{ background:#fff; color:var(--navy); box-shadow:var(--shadow-1); }
+.code-actions{ margin-left:auto; display:flex; gap:8px; }
+.code-body{ max-height:560px; overflow:auto; }
+.code-body pre{ margin:0; padding:18px 0; font-size:0.80rem; }
+.code-body code.hljs{ background:transparent !important; padding:0 20px !important; }
+.code-status{ padding:18px 20px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:0.78rem; }
+.code-extra{ margin-top:18px; font-size:0.86rem; color:var(--ink-soft); }
+.code-extra code{ font-family:'IBM Plex Mono',monospace; font-size:0.78rem; }
+
 /* ============================================================
    FOOTER
 ============================================================ */
@@ -374,6 +398,15 @@ footer{ padding:44px 0 60px; text-align:center; }
   .meta-strip .m{
     padding-right:16px; margin-right:16px; margin-bottom:14px; border-right:none;
   }
+
+  .code-topbar{ padding:10px 12px; gap:8px; }
+  .code-tabs{ width:100%; }
+  .code-tabs button{ flex:1 1 45%; padding:7px 8px; font-size:0.70rem; }
+  .code-actions{ margin-left:0; width:100%; }
+  .code-actions .btn{ flex:1; justify-content:center; }
+  .code-body{ max-height:62vh; }
+  .code-body pre{ font-size:0.72rem; padding:14px 0; }
+  .code-body code.hljs{ padding:0 12px !important; }
   .file-row{ padding:12px 10px; gap:10px; }
   .file-info .fn{ font-size:0.76rem; }
   .file-badge{ display:none; }
@@ -409,6 +442,7 @@ footer .fmark{ font-family:'IBM Plex Mono',monospace; font-size:0.74rem; letter-
       <a href="#framework">Framework</a>
       <a href="#field-test">Field Test</a>
       <a href="#dataset">Dataset</a>
+      <a href="#code">Code</a>
     </div>
   </div>
 </nav>
@@ -584,7 +618,7 @@ footer .fmark{ font-family:'IBM Plex Mono',monospace; font-size:0.74rem; letter-
     <div class="dl-grid">
       <div class="dl-card">
         <div class="fname">UAV landing-site perception dataset</div>
-        <div class="fmeta">Depth frames, extracted geometric features (tilt, flatness_std, obstacle_ratio), ground-truth labels (SAFE / NOT SAFE), and session metadata for all eight recording sessions. Includes both the pre-fix and post-fix tilt features and the likelihood tables used by the deployed classifier.</div>
+        <div class="fmeta">Tabular geometric landing-site features (angle_deg, flatness_std, obstacle_ratio, and depth-deviation percentiles), ground-truth labels (SAFE / NOT SAFE), and session metadata for all eight recording sessions. Phase 1 records the pre-fix tilt outputs; Phase 2 records corrected post-fix measurements.</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <a id="dataset-download-btn" class="btn btn-teal" href="data/landing_dataset_release.csv">Download Dataset (CSV)</a>
           <a id="dataset-readme-btn" class="btn btn-outline" href="data/README.md">Dataset README</a>
@@ -604,7 +638,7 @@ footer .fmark{ font-family:'IBM Plex Mono',monospace; font-size:0.74rem; letter-
         </div>
         <div class="file-info">
           <div class="fn">landing_dataset_release.csv</div>
-          <div class="fd">3,458 labeled rows · 8 sessions · pre-fix and post-fix tilt features</div>
+          <div class="fd">3,458 labeled rows · 8 sessions · Phase 1 pre-fix / Phase 2 post-fix tilt outputs</div>
         </div>
         <span class="file-badge">CSV</span>
       </div>
@@ -629,9 +663,49 @@ footer .fmark{ font-family:'IBM Plex Mono',monospace; font-size:0.74rem; letter-
       <div class="m"><div class="v">8</div><div class="l">Sessions</div></div>
       <div class="m"><div class="v">3,458</div><div class="l">Labeled rows</div></div>
       <div class="m"><div class="v">14</div><div class="l">Classifiers evaluated</div></div>
-      <div class="m"><div class="v">100 Hz</div><div class="l">Sampling rate</div></div>
+      <div class="m"><div class="v">Per-frame</div><div class="l">Timestamped records</div></div>
       <div class="m"><div class="v">2</div><div class="l">Collection phases</div></div>
     </div>
+  </div>
+</section>
+
+
+<section class="block reveal" id="code">
+  <div class="wrap">
+    <div class="block-head">
+      <div class="eyebrow"><span class="num">05</span>Source Code</div>
+      <h2>Reference implementation for the six cross-layer consistency checks</h2>
+      <p class="sub">The released code covers classifier evaluation and LOSO analysis, synthetic altitude/ROI validation, decision-table staleness checks, temporal gating, and the independent Arduino backstop. The bundled dataset can be split into the eight expected session files with one helper command.</p>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;">
+      <a id="code-readme-btn" class="btn btn-teal" href="code/README.md">Code README &amp; Run Instructions</a>
+      <a id="code-requirements-btn" class="btn btn-outline" href="code/requirements.txt">requirements.txt</a>
+      <a id="code-prep-btn" class="btn btn-outline" href="code/prepare_session_csvs.py">Dataset Preparation Helper</a>
+    </div>
+
+    <div class="code-shell">
+      <div class="code-topbar">
+        <div class="code-tabs" id="code-tabs">
+          <button data-code-key="evaluate" class="active">evaluate_classifiers.py</button>
+          <button data-code-key="simulate">simulate_depth_scenes.py</button>
+          <button data-code-key="rebuild">rebuild_likelihoods_loso_check.py</button>
+          <button data-code-key="features">features.py</button>
+          <button data-code-key="gate">temporal_gate.py</button>
+          <button data-code-key="arduino">arduino_backstop.ino</button>
+        </div>
+        <div class="code-actions">
+          <button class="btn btn-outline" id="code-copy-btn">Copy</button>
+          <button class="btn btn-outline" id="code-download-btn">Download</button>
+        </div>
+      </div>
+      <div class="code-body">
+        <div id="code-status" class="code-status">Loading source…</div>
+        <pre id="code-pre" style="display:none;"><code id="code-view" class="language-python"></code></pre>
+      </div>
+    </div>
+
+    <p class="code-extra">Also included in the repository: <code>sanity_check_session.py</code>, <code>plot_style.py</code>, <code>test_temporal_gate.py</code>, <code>test_arduino_backstop.py</code>, Gaussian/range parameter JSON files, the Arduino firmware, and the MIT license.</p>
   </div>
 </section>
 
@@ -863,5 +937,96 @@ footer .fmark{ font-family:'IBM Plex Mono',monospace; font-size:0.74rem; letter-
 
 })();
 </script>
+<script>
+(function(){
+  const CODE_FILES = {
+    evaluate: {label:"evaluate_classifiers.py", path:"code/src/evaluate_classifiers.py", lang:"python"},
+    simulate: {label:"simulate_depth_scenes.py", path:"code/src/simulate_depth_scenes.py", lang:"python"},
+    rebuild:  {label:"rebuild_likelihoods_loso_check.py", path:"code/src/rebuild_likelihoods_loso_check.py", lang:"python"},
+    features: {label:"features.py", path:"code/src/features.py", lang:"python"},
+    gate:     {label:"temporal_gate.py", path:"code/src/temporal_gate.py", lang:"python"},
+    arduino:  {label:"arduino_backstop.ino", path:"code/firmware/arduino_backstop/arduino_backstop.ino", lang:"cpp"}
+  };
+  let currentKey = "evaluate";
+  let currentText = "";
+
+  function setAnonLink(id, path){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.href = anonymousRepoId() ? anonymousFileViewUrl(path) : path;
+    el.target = "_self";
+  }
+
+  async function showCode(key){
+    if(!CODE_FILES[key]) return;
+    currentKey = key;
+    const info = CODE_FILES[key];
+    document.querySelectorAll('#code-tabs button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.codeKey === key);
+    });
+    const status = document.getElementById('code-status');
+    const pre = document.getElementById('code-pre');
+    const view = document.getElementById('code-view');
+    if(status){ status.style.display='block'; status.textContent='Loading ' + info.label + '…'; }
+    if(pre) pre.style.display='none';
+    try{
+      const res = await fetch(info.path, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      currentText = await res.text();
+      if(view){
+        view.className = 'language-' + info.lang;
+        view.textContent = currentText;
+        if(window.hljs){ try{ hljs.highlightElement(view); }catch(e){} }
+      }
+      if(status) status.style.display='none';
+      if(pre) pre.style.display='block';
+    }catch(err){
+      currentText = '';
+      if(status){ status.style.display='block'; status.textContent='Could not load ' + info.label + '. Use the Code README button above to open the repository file.'; }
+    }
+  }
+
+  async function copyCode(){
+    if(!currentText) return;
+    const btn = document.getElementById('code-copy-btn');
+    const old = btn ? btn.textContent : '';
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(currentText);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = currentText; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+      }
+      if(btn){ btn.textContent='Copied'; setTimeout(()=>btn.textContent=old, 1200); }
+    }catch(e){ if(btn) btn.textContent='Copy failed'; }
+  }
+
+  function downloadCode(){
+    const info = CODE_FILES[currentKey];
+    if(!info) return;
+    if(anonymousRepoId()){
+      window.location.href = anonymousFileViewUrl(info.path);
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = info.path; a.download = info.label; a.target='_self';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setAnonLink('code-readme-btn', 'code/README.md');
+    setAnonLink('code-requirements-btn', 'code/requirements.txt');
+    setAnonLink('code-prep-btn', 'code/prepare_session_csvs.py');
+    document.querySelectorAll('#code-tabs button').forEach(btn => btn.addEventListener('click', () => showCode(btn.dataset.codeKey)));
+    const copyBtn = document.getElementById('code-copy-btn');
+    const dlBtn = document.getElementById('code-download-btn');
+    if(copyBtn) copyBtn.addEventListener('click', copyCode);
+    if(dlBtn) dlBtn.addEventListener('click', downloadCode);
+    showCode(currentKey);
+  });
+})();
+</script>
+
 </body>
 </html>

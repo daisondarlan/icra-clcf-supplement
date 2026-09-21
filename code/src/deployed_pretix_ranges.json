@@ -1,0 +1,6 @@
+{
+  "_comment": "Range [min, max] of the pre-fix likelihood table actually deployed at diagnosis time (Sec. III-G / Table V, 'Old' column). Built from the angle_deg pixel-pitch bug era, before the tilt-feature fix in features.py; the source data that produced it predates this repository and is not separately released, but the resulting range is a fixed historical fact reproduced here so rebuild_likelihoods_loso_check.py runs without extra inputs.",
+  "angle_deg": {"lo": 0.000470912, "hi": 0.2746209120000007},
+  "flatness_std": {"lo": 0.00866925, "hi": 0.4168492499999834},
+  "obstacle_ratio": {"lo": 0.0, "hi": 0.97924}
+}

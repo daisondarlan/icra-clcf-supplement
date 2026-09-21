@@ -46,7 +46,7 @@ Every session was checked against the physically expected feature range for a
 Sessions A-D show an `obstacle_ratio` distribution inconsistent with a flat,
 safe surface (mean 0.79-0.92 regardless of label), most likely caused by a
 fixed obstacle-height threshold that does not hold across all outdoor ground
-textures (see the paper, Sec. IV-C). Session E and both Phase 2 sessions do
+textures (see the paper, Sec. IV-C). Session E and all three Phase 2 sessions do
 not show this signature. This release includes the affected sessions
 unmodified, with this flag, rather than silently dropping them -- the
 inconsistency is itself part of the paper's evaluation.
@@ -55,3 +55,10 @@ inconsistency is itself part of the paper's evaluation.
 
 Released for research use alongside the paper. Contact the authors for other
 uses.
+
+
+## Reference code
+
+The accompanying `code/` directory contains the reference implementation and
+evaluation scripts. Run `python code/prepare_session_csvs.py` from the repository
+root to reconstruct the eight per-session CSV files expected by those scripts.

@@ -1,3 +1,14 @@
 .DS_Store
 Thumbs.db
 *.tmp
+
+# Local reproduction outputs
+code/session_*.csv
+code/*.png
+code/*.json
+code/simulation_scenes.csv
+code/__pycache__/
+code/src/__pycache__/
+code/tests/__pycache__/
+code/firmware/__pycache__/
+.venv/
